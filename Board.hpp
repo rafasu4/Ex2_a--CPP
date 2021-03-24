@@ -9,7 +9,7 @@ namespace ariel{
 
 class Board{
 
-    public:
+    private:
     std::map<unsigned int, pair<unsigned int, vector<char>> > messageBoard;
 
     

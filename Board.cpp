@@ -9,26 +9,25 @@ namespace ariel
         {
             throw std::logic_error("length of a word cann't be negative!");
         }
-        string ans = "";
-
-        if(d == Direction::Horizontal){
-            
+        string ans;
+        if (d == Direction::Horizontal)
+        {
             ans = readH(row, col, length);
         }
-        else{
-            for(unsigned int i = 0; i < length; i++){
+        else
+        {
+            for (unsigned i = 0; i < length; i++)
+            {
                 ans += readV(row + i, col);
             }
-            
         }
-        
         return ans;
     }
 
     void Board::post(unsigned int row, unsigned int col, Direction d, std::string s)
     {
         //if the string is empty - nothing to be changed
-        if (s == "")
+        if (s.empty())
             return;
         if (d == Direction::Horizontal)
         {
@@ -58,7 +57,6 @@ namespace ariel
                 {
                     updateV(row + i, col, *it);
                 }
-
                 else
                 {
                     pair<unsigned int, vector<char>> newPair = pair<unsigned int, vector<char>>();
@@ -177,131 +175,119 @@ void Board::updateV(unsigned int row, unsigned int col, char c)
     pair<unsigned int, vector<char>> currentLine = messageBoard[row];
     unsigned int startOfPost = currentLine.first;
     vector<char> currentPost = currentLine.second;
-    vector<char> updatedPost = vector<char>();
     unsigned int sizeOfCurrentPost = currentPost.size();
-    if (startOfPost <= col && col <= startOfPost + sizeOfCurrentPost)
-    {
+    if(startOfPost <= col && col <= startOfPost +sizeOfCurrentPost){
+        currentPost.at(col - startOfPost) = c;
+        messageBoard[row] = {startOfPost, currentPost};
+    }
+    else if(col < startOfPost){
+        vector<char> updatedPost = vector<char>();
+        updatedPost.push_back(c);
+        unsigned int i = col;
+        while (i < startOfPost)
+        {
+            updatedPost.push_back('-');
+        }
         for(char c: currentPost){
             updatedPost.push_back(c);
         }
-        updatedPost.at(col - startOfPost) = c;
         messageBoard[row] = {col, updatedPost};
     }
-    else
-    {
-        if (col < startOfPost)
-        {
-            updatedPost.push_back(c);
-            unsigned int newCol = col;
-            while (newCol < startOfPost)
-            {
-                updatedPost.push_back('-');
-                newCol++;
-            }
-            for (char ch : currentPost)
-            {
-                updatedPost.push_back(ch);
-            }
-            messageBoard[row] = {col,updatedPost };
+    else{
+        unsigned int i = startOfPost + sizeOfCurrentPost;
+        while(i < col){
+            currentPost.push_back('-');
         }
-        else
-        {
-            for(char c: currentPost){
-                updatedPost.push_back(c);
-            }
-            unsigned int newStartOfPost = startOfPost;
-            while(newStartOfPost < col){
-            updatedPost.push_back('-');
-            newStartOfPost++;
-            }
-            updatedPost.push_back(c);
-            messageBoard[row] = {startOfPost, updatedPost};
-        }
+        currentPost.push_back(c);
+        messageBoard[row] = {startOfPost, currentPost};
     }
 }
 
-string Board::readH(unsigned int row, unsigned int col, int length){
-    string ans = "";
-        if (!messageBoard.count(row))
+string Board::readH(unsigned int row, unsigned int col, int length)
+{
+    string ans;
+    if (!messageBoard.count(row))
+    {
+        for (int i = 0; i < length; i++)
         {
-            for (int i = 0; i < length; i++)
+            ans += '-';
+        }
+    }
+    else
+    {
+        pair<unsigned int, vector<char>> line = messageBoard[row];
+        if (col < line.first)
+        {
+            unsigned int i = 0;
+            while (col < line.first)
             {
                 ans += '-';
+                col++;
+                i++;
+            }
+            if (i < length)
+            {
+                unsigned int j = 0;
+                for (; i < length; i++)
+                {
+                    if (j >= line.second.size())
+                    {
+                        ans += '-';
+                    }
+                    else
+                    {
+                        ans += line.second.at(j);
+                        j++;
+                    }
+                }
             }
         }
         else
         {
-            pair<unsigned int, vector<char>> line = messageBoard[row];
-            if (col < line.first)
+            unsigned int j = line.first + line.second.size();
+            if (col > j)
             {
-                unsigned int i = 0;
-                while (col < line.first)
+                for (int i = 0; i < length; i++)
                 {
                     ans += '-';
-                    col++;
-                    i++;
-                }
-                if (i < length)
-                {
-                    unsigned int j = 0;
-                    for (; i < length; i++)
-                    {
-                        if (j >= line.second.size())
-                        {
-                            ans += '-';
-                        }
-                        else
-                        {
-                            ans += line.second.at(j);
-                            j++;
-                        }
-                    }
                 }
             }
             else
             {
-                unsigned int j = line.first + line.second.size();
-                if (col > j)
+                unsigned int startRead = col - line.first;
+                for (unsigned int i = 0; i < length; i++)
                 {
-                    for (int i = 0; i < length; i++)
+                    if (startRead > j)
                     {
                         ans += '-';
                     }
-                }
-                else
-                {
-
-                    unsigned int startRead = col - line.first;
-                     for (unsigned int i = 0; i < length; i++)
-                     {
-                        if (startRead > line.second.size)
-                        {
-                            ans += '-';
-                        }
-                    //     else
-                    //     {
-                    //         ans += line.second.at(startRead);
-                    //     }
-                    //     startRead++;
-                    // }
+                    else
+                    {
+                        ans += line.second.at(startRead);
+                    }
+                    startRead++;
                 }
             }
         }
-        return ans;
+    }
+    return ans;
 }
-
-char Board::readV(unsigned int row, unsigned int col){
-    if(messageBoard.count(row)){
-        pair<unsigned int, vector<char> > currentLine = messageBoard[row];
-        if(currentLine.first <= col && col <= currentLine.first + currentLine.second.size()){
+char Board::readV(unsigned int row, unsigned int col)
+{
+    if (messageBoard.count(row))
+    {
+        pair<unsigned int, vector<char>> currentLine = messageBoard[row];
+        if (currentLine.first <= col && col <= currentLine.first + currentLine.second.size())
+        {
             return currentLine.second.at(col - currentLine.first);
         }
-        else{
+        else
+        {
             return '-';
         }
     }
-    else{
-        return  '-';
+    else
+    {
+        return '-';
     }
-
 }
